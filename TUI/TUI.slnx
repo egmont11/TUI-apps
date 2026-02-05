@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="calculator/calculator.csproj" />
+  <Project Path="FileExplorer/FileExplorer.csproj" />
+  <Project Path="SystemMonitor/SystemMonitor.csproj" />
+  <Project Path="TodoList/TodoList.csproj" />
+</Solution>
