@@ -14,7 +14,9 @@ class Program
         {
             Title = "File Explorer"
         };
+        var shortCutsBar = new ShortCutsBar(window);
         
+        shortCutsBar.Show();
         app.Run(window);
         
         app.Dispose();
