@@ -1,4 +1,5 @@
-﻿using Terminal.Gui.Views;
+﻿using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 namespace FileExplorer;
 
@@ -13,18 +14,18 @@ public class ShortCutsBar
 
     public void Show()
     {
-        var lastRow = _window.Frame.Bottom - 2;
-
         var border = new Line()
         {
             X = 0,
-            Y = lastRow - 1
+            Y = Pos.AnchorEnd(2)
         };
         
+        // TODO: implement this shortcut
         var exampleText = new Label()
         {
-            X = 12,
-            Y = lastRow,
+            Text = "Switch views: Tab",
+            X = 1,
+            Y = Pos.AnchorEnd(1)
         };
         
         _window.Add(exampleText);
