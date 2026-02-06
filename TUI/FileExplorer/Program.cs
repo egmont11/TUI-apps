@@ -15,8 +15,11 @@ class Program
             Title = "File Explorer"
         };
         var shortCutsBar = new ShortCutsBar(window);
+        var fileView = new FileView(window);
         
+        fileView.Show();
         shortCutsBar.Show();
+        
         app.Run(window);
         
         app.Dispose();

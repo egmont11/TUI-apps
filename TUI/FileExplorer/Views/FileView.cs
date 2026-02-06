@@ -6,26 +6,60 @@ namespace FileExplorer;
 public class FileView
 {
     private readonly Window _window;
-    public string CurrentPath { get; }
+    private string _currentPath;
+    public string CurrentPath => _currentPath;
+    private List<ExplorerItem> _directoryContent;
 
-    public FileView()
+    public FileView(Window window)
     {
-        
+        _window = window;
+        _currentPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
     }
     
     public void Show()
     {
+        var line = new Line()
+        {
+            X = 0, Y = 1
+        };
+        var pathLabel = new Label()
+        {
+            Text = $"Path: {_currentPath}",
+            X = 0, Y = 0
+        };
         
+        Refresh();
+        var lineCount = _directoryContent.Count;
+        
+        for (int i = 0; i < lineCount; i++)
+        {
+            var name = _directoryContent[i].IsDirectory ? $"{_directoryContent[i].Name}/" : _directoryContent[i].Name;
+            var sizeString = _directoryContent[i].Size is null ? "" : $"{_directoryContent[i].Size} bytes";
+            var showItem = new Label()
+            {
+                Text = $"{name} {sizeString}",
+                X = 0, Y = i + 2
+            };
+            
+            _window.Add(showItem);
+        }
+        
+        _window.Add(line);
+        _window.Add(pathLabel);
     }
 
-    public void Refresh()
+    private void Refresh()
     {
-        throw new NotImplementedException();
+        _directoryContent = GetDirectoryContent(CurrentPath);
     }
     
     public void GoToParentDirectory()
     {
-        throw new NotImplementedException();
+        var parent = Directory.GetParent(_currentPath);
+        if (parent is null) return;
+        
+        _currentPath = parent.FullName;
+        Refresh();
     }
     
     public void GoToDirectory(string path)
@@ -48,7 +82,7 @@ public class FileView
             .Select(file => new ExplorerItem()
             {
                 Name = file.Name,
-                Path = path + file.Name,
+                Path = Path.Combine(path, file.Name),
                 IsDirectory = false,
                 Size = file.Length,
                 LastModified = file.LastWriteTime,
@@ -61,7 +95,7 @@ public class FileView
             .Select(file => new ExplorerItem()
             {
                 Name = file.Name,
-                Path = path + file.Name,
+                Path = Path.Combine(path, file.Name),
                 IsDirectory = true,
                 Size = null,
                 LastModified = file.LastWriteTime,
