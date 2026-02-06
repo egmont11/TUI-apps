@@ -60,14 +60,14 @@ class Program
 
         var multiplyButton = new Button("Multiply")
         {
-            X = 22,
+            X = 19,
             Y = 8
         };
         window.Add(multiplyButton);
 
         var divisionButton = new Button("Division")
         {
-            X = 35,
+            X = 31,
             Y = 8
         };
         window.Add(divisionButton);
@@ -134,7 +134,6 @@ class Program
             {
                 resultText.Text = ex.Message;
             }
-            
         };
         
         Application.Run();
