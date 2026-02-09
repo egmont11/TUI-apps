@@ -1,4 +1,5 @@
-﻿using FileExplorer.Models;
+﻿using System.Collections.ObjectModel;
+using FileExplorer.Models;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 
@@ -20,11 +21,17 @@ public class FileView
     private View _middlePanel;
     private View _rightPanel;
 
+    private ListView _listViewLeft;
+    private ListView _listViewRight;
+
     public FileView(Window window)
     {
         _window = window;
         _currentPathLeft = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         _currentPathRight = _currentPathLeft;
+        
+        _directoryContentLeft = GetDirectoryContent(CurrentPathLeft);
+        _directoryContentRight = GetDirectoryContent(CurrentPathRight);
     }
 
     public void Show()
@@ -101,21 +108,19 @@ public class FileView
 
         _leftPanel.Add(pathLabel, line);
 
-        Refresh();
-
-        for (int i = 0; i < _directoryContentLeft.Count; i++)
+        _listViewLeft = new ListView()
         {
-            var item = _directoryContentLeft[i];
-            var name = item.IsDirectory ? $"{item.Name}/" : item.Name;
+            X = 0,
+            Y = 2,
+            Width = Dim.Fill(),
+            Height = Dim.Fill()
+        };
 
-            _leftPanel.Add(new Label()
-            {
-                Text = name,
-                X = 0,
-                Y = i + 2,
-                Width = Dim.Fill()
-            });
-        }
+        _listViewLeft.Source = new ListWrapper<ExplorerItem>(
+            new ObservableCollection<ExplorerItem>(_directoryContentLeft)
+        );
+        
+        _leftPanel.Add(_listViewLeft);
     }
 
     
@@ -140,27 +145,33 @@ public class FileView
 
         _rightPanel.Add(pathLabel, line);
 
-        Refresh();
-
-        for (int i = 0; i < _directoryContentRight.Count; i++)
+        _listViewRight = new ListView()
         {
-            var item = _directoryContentRight[i];
-            var name = item.IsDirectory ? $"{item.Name}/" : item.Name;
-
-            _rightPanel.Add(new Label()
-            {
-                Text = name,
-                X = 0,
-                Y = i + 2,
-                Width = Dim.Fill()
-            });
-        }
+            X = 0,
+            Y = 2,
+            Width = Dim.Fill(),
+            Height = Dim.Fill()
+        };
+        
+        _listViewRight.Source = new ListWrapper<ExplorerItem>(
+            new ObservableCollection<ExplorerItem>(_directoryContentRight)
+        );
+        
+        _rightPanel.Add(_listViewRight);
     }
 
     private void Refresh()
     {
         _directoryContentLeft = GetDirectoryContent(CurrentPathLeft);
         _directoryContentRight = GetDirectoryContent(CurrentPathRight);
+        
+        _listViewLeft.Source = new ListWrapper<ExplorerItem>(
+            new ObservableCollection<ExplorerItem>(_directoryContentLeft)
+        );
+        
+        _listViewRight.Source = new ListWrapper<ExplorerItem>(
+            new ObservableCollection<ExplorerItem>(_directoryContentRight)
+        );
     }
     
     public void GoToParentDirectory(bool isLeft)

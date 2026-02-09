@@ -9,4 +9,9 @@ public class ExplorerItem
     public long? Size { get; set; }
     public DateTime LastModified { get; set; }
     public DateTime Created { get; set; }
+    
+    public override string ToString()
+    {
+        return IsDirectory ? $"{Name}/" : Name;
+    }
 }
