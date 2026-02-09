@@ -35,7 +35,7 @@ public class FileView
         {
             X = Pos.Right(_leftPanel),
             Y = 0,
-            Width = Dim.Percent(2),
+            Width = 2,
             Height = Dim.Fill()
         };
 
