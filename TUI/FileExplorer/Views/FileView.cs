@@ -1,5 +1,6 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using FileExplorer.Models;
+using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 
@@ -119,6 +120,9 @@ public class FileView
         _listViewLeft.Source = new ListWrapper<ExplorerItem>(
             new ObservableCollection<ExplorerItem>(_directoryContentLeft)
         );
+
+        // triggered by enter
+        _listViewLeft.Accepting += (s, e) => ItemPressed(true);
         
         _leftPanel.Add(_listViewLeft);
     }
@@ -173,8 +177,32 @@ public class FileView
             new ObservableCollection<ExplorerItem>(_directoryContentRight)
         );
     }
+
+    private void ItemPressed(bool isLeft)
+    {
+        var item = isLeft ? _listViewLeft.SelectedItem : _listViewRight.SelectedItem;
+        var items = isLeft ? _directoryContentLeft : _directoryContentRight;
+
+        switch (item)
+        {
+            case null:
+            case < 0:
+                return;
+        }
+
+        var selectedItem = items[(int)item];
+        
+        if (selectedItem.IsDirectory)
+        {
+            GoToDirectory(selectedItem.Path, isLeft);
+        }
+        else
+        {
+            OpenFile(selectedItem.Path);
+        }
+    }
     
-    public void GoToParentDirectory(bool isLeft)
+    private void GoToParentDirectory(bool isLeft)
     {
         DirectoryInfo? parent;
         if (isLeft)
@@ -193,14 +221,41 @@ public class FileView
         Refresh();
     }
     
-    public void GoToDirectory(string path)
+    private void GoToDirectory(string path, bool isLeft)
     {
-        throw new NotImplementedException();
+        try
+        {
+            if (isLeft)
+            {
+                _currentPathLeft = path;
+            }
+            else
+            {
+                _currentPathRight = path;
+            }
+
+            Refresh();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
     
-    public void OpenFile(string path)
+    private void OpenFile(string path)
     {
-        throw new NotImplementedException();
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 
     private static List<ExplorerItem> GetDirectoryContent(string path)
@@ -208,6 +263,22 @@ public class FileView
         List<ExplorerItem> directoryContent = [];
         var directory = new DirectoryInfo(path);
 
+        directoryContent.Add(new ExplorerItem()
+        {
+            Name = ".",
+            Path = directory.FullName,
+            IsDirectory = true,
+            Size = null,
+        });
+        
+        directoryContent.Add(new ExplorerItem()
+        {
+            Name = "..",
+            Path = directory.Parent?.FullName ?? "",
+            IsDirectory = true,
+            Size = null,
+        });
+        
         directoryContent
             .AddRange(directory.GetFiles()
             .Select(file => new ExplorerItem()
