@@ -20,15 +20,15 @@ public class ShortCutsBar
             Y = Pos.AnchorEnd(2)
         };
         
-        // TODO: implement this shortcut
-        var exampleText = new Label()
+        // TODO: implement these shortcuts
+        var shortcuts = new Label()
         {
-            Text = "Switch views: Tab",
-            X = 1,
+            Text = "Switch views: Tab | Copy: Shift+C | Paste: Shift+V | Delete: Delete",
+            X = 0,
             Y = Pos.AnchorEnd(1)
         };
         
-        _window.Add(exampleText);
+        _window.Add(shortcuts);
         _window.Add(border);
     }
 }

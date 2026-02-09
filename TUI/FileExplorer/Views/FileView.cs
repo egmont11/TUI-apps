@@ -1,4 +1,5 @@
 ﻿using FileExplorer.Models;
+using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 
 namespace FileExplorer;
@@ -9,43 +10,145 @@ public class FileView
     private string _currentPath;
     public string CurrentPath => _currentPath;
     private List<ExplorerItem> _directoryContent;
+    
+    private View _leftPanel;
+    private View _middlePanel;
+    private View _rightPanel;
 
     public FileView(Window window)
     {
         _window = window;
         _currentPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
     }
-    
+
     public void Show()
     {
-        var line = new Line()
+        _leftPanel = new View()
         {
-            X = 0, Y = 1
+            X = 0,
+            Y = 0,
+            Width = Dim.Percent(49),
+            Height = Dim.Fill()
         };
+
+        _middlePanel = new View()
+        {
+            X = Pos.Right(_leftPanel),
+            Y = 0,
+            Width = Dim.Percent(2),
+            Height = Dim.Fill()
+        };
+
+        _rightPanel = new View()
+        {
+            X = Pos.Right(_middlePanel),
+            Y = 0,
+            Width = Dim.Fill(),
+            Height = Dim.Fill()
+        };
+
+        _window.Add(_leftPanel, _middlePanel, _rightPanel);
+
+        ShowLeft();
+        ShowMiddle();
+        ShowRight();
+    }
+
+    private void ShowMiddle()
+    {
+        _middlePanel.Add(
+            new Line()
+            {
+                X = 0, 
+                Y = 0, 
+                Height = Dim.Fill(),
+                Orientation = Orientation.Vertical
+            },
+            new Line()
+            {
+                X = 1, 
+                Y = 0, 
+                Height = Dim.Fill(),
+                Orientation = Orientation.Vertical
+            }
+        );
+    }
+    
+    private void ShowLeft()
+    {
+        _leftPanel.RemoveAll();
+
         var pathLabel = new Label()
         {
             Text = $"Path: {_currentPath}",
-            X = 0, Y = 0
+            X = 0,
+            Y = 0,
+            Width = Dim.Fill()
         };
-        
-        Refresh();
-        var lineCount = _directoryContent.Count;
-        
-        for (int i = 0; i < lineCount; i++)
+
+        var line = new Line()
         {
-            var name = _directoryContent[i].IsDirectory ? $"{_directoryContent[i].Name}/" : _directoryContent[i].Name;
-            var sizeString = _directoryContent[i].Size is null ? "" : $"{_directoryContent[i].Size} bytes";
-            var showItem = new Label()
+            X = 0,
+            Y = 1,
+            Width = Dim.Fill()
+        };
+
+        _leftPanel.Add(pathLabel, line);
+
+        Refresh();
+
+        for (int i = 0; i < _directoryContent.Count; i++)
+        {
+            var item = _directoryContent[i];
+            var name = item.IsDirectory ? $"{item.Name}/" : item.Name;
+
+            _leftPanel.Add(new Label()
             {
-                Text = $"{name} {sizeString}",
-                X = 0, Y = i + 2
-            };
-            
-            _window.Add(showItem);
+                Text = name,
+                X = 0,
+                Y = i + 2,
+                Width = Dim.Fill()
+            });
         }
-        
-        _window.Add(line);
-        _window.Add(pathLabel);
+    }
+
+    
+    private void ShowRight()
+    {
+        _rightPanel.RemoveAll();
+
+        var pathLabel = new Label()
+        {
+            Text = $"Path: {_currentPath}",
+            X = 0,
+            Y = 0,
+            Width = Dim.Fill()
+        };
+
+        var line = new Line()
+        {
+            X = 0,
+            Y = 1,
+            Width = Dim.Fill()
+        };
+
+        _rightPanel.Add(pathLabel, line);
+
+        Refresh();
+
+        for (int i = 0; i < _directoryContent.Count; i++)
+        {
+            var item = _directoryContent[i];
+            var name = item.IsDirectory ? $"{item.Name}/" : item.Name;
+
+            _rightPanel.Add(new Label()
+            {
+                Text = name,
+                X = 0,
+                Y = i + 2,
+                Width = Dim.Fill()
+            });
+        }
     }
 
     private void Refresh()
