@@ -7,9 +7,14 @@ namespace FileExplorer;
 public class FileView
 {
     private readonly Window _window;
-    private string _currentPath;
-    public string CurrentPath => _currentPath;
-    private List<ExplorerItem> _directoryContent;
+    private string _currentPathLeft;
+    private string _currentPathRight;
+    
+    public string CurrentPathLeft => _currentPathLeft;
+    public string CurrentPathRight => _currentPathRight;
+    
+    private List<ExplorerItem> _directoryContentLeft;
+    private List<ExplorerItem> _directoryContentRight;
     
     private View _leftPanel;
     private View _middlePanel;
@@ -18,7 +23,8 @@ public class FileView
     public FileView(Window window)
     {
         _window = window;
-        _currentPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        _currentPathLeft = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        _currentPathRight = _currentPathLeft;
     }
 
     public void Show()
@@ -80,7 +86,7 @@ public class FileView
 
         var pathLabel = new Label()
         {
-            Text = $"Path: {_currentPath}",
+            Text = $"Path: {_currentPathLeft}",
             X = 0,
             Y = 0,
             Width = Dim.Fill()
@@ -97,9 +103,9 @@ public class FileView
 
         Refresh();
 
-        for (int i = 0; i < _directoryContent.Count; i++)
+        for (int i = 0; i < _directoryContentLeft.Count; i++)
         {
-            var item = _directoryContent[i];
+            var item = _directoryContentLeft[i];
             var name = item.IsDirectory ? $"{item.Name}/" : item.Name;
 
             _leftPanel.Add(new Label()
@@ -119,7 +125,7 @@ public class FileView
 
         var pathLabel = new Label()
         {
-            Text = $"Path: {_currentPath}",
+            Text = $"Path: {_currentPathRight}",
             X = 0,
             Y = 0,
             Width = Dim.Fill()
@@ -136,9 +142,9 @@ public class FileView
 
         Refresh();
 
-        for (int i = 0; i < _directoryContent.Count; i++)
+        for (int i = 0; i < _directoryContentRight.Count; i++)
         {
-            var item = _directoryContent[i];
+            var item = _directoryContentRight[i];
             var name = item.IsDirectory ? $"{item.Name}/" : item.Name;
 
             _rightPanel.Add(new Label()
@@ -153,15 +159,26 @@ public class FileView
 
     private void Refresh()
     {
-        _directoryContent = GetDirectoryContent(CurrentPath);
+        _directoryContentLeft = GetDirectoryContent(CurrentPathLeft);
+        _directoryContentRight = GetDirectoryContent(CurrentPathRight);
     }
     
-    public void GoToParentDirectory()
+    public void GoToParentDirectory(bool isLeft)
     {
-        var parent = Directory.GetParent(_currentPath);
-        if (parent is null) return;
+        DirectoryInfo? parent;
+        if (isLeft)
+        {
+            parent = Directory.GetParent(_currentPathLeft);
+            if (parent is null) return;
+            _currentPathLeft = parent.FullName;
+        }
+        else
+        {
+            parent = Directory.GetParent(_currentPathRight);
+            if (parent is null) return;
+            _currentPathRight = parent.FullName;
+        }
         
-        _currentPath = parent.FullName;
         Refresh();
     }
     
