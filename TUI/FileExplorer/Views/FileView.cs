@@ -161,6 +161,9 @@ public class FileView
             new ObservableCollection<ExplorerItem>(_directoryContentRight)
         );
         
+        // triggered by enter
+        _listViewLeft.Accepting += (s, e) => ItemPressed(false);
+        
         _rightPanel.Add(_listViewRight);
     }
 
