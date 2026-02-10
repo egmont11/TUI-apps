@@ -1,7 +1,7 @@
 ﻿using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 
-namespace FileExplorer;
+namespace FileExplorer.Views;
 
 public class ShortCutsBar
 {
@@ -20,10 +20,11 @@ public class ShortCutsBar
             Y = Pos.AnchorEnd(2)
         };
         
-        // TODO: implement these shortcuts
+        // TODO: implement these shortcuts: 
+        //          Copy, Paste, Delete
         var shortcuts = new Label()
         {
-            Text = "Switch views: Tab | Copy: Shift+C | Paste: Shift+V | Delete: Delete",
+            Text = "Switch views: Arrow keys and Tab | Copy: Shift+C | Paste: Shift+V | Delete: Delete",
             X = 0,
             Y = Pos.AnchorEnd(1)
         };

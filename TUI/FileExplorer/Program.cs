@@ -1,4 +1,5 @@
-﻿using Terminal.Gui.App;
+﻿using FileExplorer.Views;
+using Terminal.Gui.App;
 using Terminal.Gui.Views;
 
 namespace FileExplorer;
@@ -12,7 +13,8 @@ class Program
 
         var window = new Window()
         {
-            Title = "File Explorer"
+            Title = "File Explorer",
+            CanFocus = true
         };
         var shortCutsBar = new ShortCutsBar(window);
         var fileView = new FileView(window);

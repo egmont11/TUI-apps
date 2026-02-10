@@ -4,16 +4,16 @@ using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 
-namespace FileExplorer;
+namespace FileExplorer.Views;
 
 public class FileView
 {
     private readonly Window _window;
     private string _currentPathLeft;
     private string _currentPathRight;
-    
-    public string CurrentPathLeft => _currentPathLeft;
-    public string CurrentPathRight => _currentPathRight;
+
+    private Label _pathLabelLeft;
+    private Label _pathLabelRight;
     
     private List<ExplorerItem> _directoryContentLeft;
     private List<ExplorerItem> _directoryContentRight;
@@ -24,6 +24,8 @@ public class FileView
 
     private ListView _listViewLeft;
     private ListView _listViewRight;
+    
+    private bool _isLeftPanelActive = true;
 
     public FileView(Window window)
     {
@@ -31,8 +33,8 @@ public class FileView
         _currentPathLeft = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         _currentPathRight = _currentPathLeft;
         
-        _directoryContentLeft = GetDirectoryContent(CurrentPathLeft);
-        _directoryContentRight = GetDirectoryContent(CurrentPathRight);
+        _directoryContentLeft = GetDirectoryContent(_currentPathLeft);
+        _directoryContentRight = GetDirectoryContent(_currentPathRight);
     }
 
     public void Show()
@@ -42,7 +44,8 @@ public class FileView
             X = 0,
             Y = 0,
             Width = Dim.Percent(49),
-            Height = Dim.Fill()
+            Height = Dim.Fill(),
+            CanFocus = true
         };
 
         _middlePanel = new View()
@@ -58,14 +61,19 @@ public class FileView
             X = Pos.Right(_middlePanel),
             Y = 0,
             Width = Dim.Fill(),
-            Height = Dim.Fill()
+            Height = Dim.Fill(),
+            CanFocus = true
         };
 
+        _window.KeyDown += OnKeyDown;
+        
         _window.Add(_leftPanel, _middlePanel, _rightPanel);
 
         ShowLeft();
         ShowMiddle();
         ShowRight();
+        
+        _leftPanel.SetFocus();
     }
 
     private void ShowMiddle()
@@ -92,9 +100,9 @@ public class FileView
     {
         _leftPanel.RemoveAll();
 
-        var pathLabel = new Label()
+        _pathLabelLeft = new Label()
         {
-            Text = $"Path: {_currentPathLeft}",
+            Text = $"[*] Path: {_currentPathLeft}",
             X = 0,
             Y = 0,
             Width = Dim.Fill()
@@ -107,7 +115,7 @@ public class FileView
             Width = Dim.Fill()
         };
 
-        _leftPanel.Add(pathLabel, line);
+        _leftPanel.Add(_pathLabelLeft, line);
 
         _listViewLeft = new ListView()
         {
@@ -123,6 +131,8 @@ public class FileView
 
         // triggered by enter
         _listViewLeft.Accepting += (s, e) => ItemPressed(true);
+        _listViewLeft.CanFocus = true;
+        _listViewLeft.KeyDown += OnListViewKeyDown;
         
         _leftPanel.Add(_listViewLeft);
     }
@@ -132,9 +142,9 @@ public class FileView
     {
         _rightPanel.RemoveAll();
 
-        var pathLabel = new Label()
+        _pathLabelRight = new Label()
         {
-            Text = $"Path: {_currentPathRight}",
+            Text = $"[ ] Path: {_currentPathRight}",
             X = 0,
             Y = 0,
             Width = Dim.Fill()
@@ -147,7 +157,7 @@ public class FileView
             Width = Dim.Fill()
         };
 
-        _rightPanel.Add(pathLabel, line);
+        _rightPanel.Add(_pathLabelRight, line);
 
         _listViewRight = new ListView()
         {
@@ -162,15 +172,17 @@ public class FileView
         );
         
         // triggered by enter
-        _listViewLeft.Accepting += (s, e) => ItemPressed(false);
+        _listViewRight.Accepting += (s, e) => ItemPressed(false);
+        _listViewRight.CanFocus = true;
+        _listViewRight.KeyDown += OnListViewKeyDown;
         
         _rightPanel.Add(_listViewRight);
     }
 
     private void Refresh()
     {
-        _directoryContentLeft = GetDirectoryContent(CurrentPathLeft);
-        _directoryContentRight = GetDirectoryContent(CurrentPathRight);
+        _directoryContentLeft = GetDirectoryContent(_currentPathLeft);
+        _directoryContentRight = GetDirectoryContent(_currentPathRight);
         
         _listViewLeft.Source = new ListWrapper<ExplorerItem>(
             new ObservableCollection<ExplorerItem>(_directoryContentLeft)
@@ -202,6 +214,44 @@ public class FileView
         else
         {
             OpenFile(selectedItem.Path);
+        }
+    }
+    
+    private void OnKeyDown(object sender, Key e)
+    {
+        if (e == Key.Tab)
+        {
+            SetActivePanel();
+            return;
+        }
+    }
+    
+    private void SetActivePanel()
+    {
+        _isLeftPanelActive = !_isLeftPanelActive;
+        var newActive = _isLeftPanelActive ? _leftPanel : _rightPanel;
+        newActive.SetFocus();
+        
+        UpdatePanelVisuals();
+    }
+    
+    private void UpdatePanelVisuals()
+    {
+        // Update path labels to show which panel is active
+        _pathLabelLeft.Text = _isLeftPanelActive 
+            ? $"[*] Path: {_currentPathLeft}" 
+            : $"[ ] Path: {_currentPathLeft}";
+            
+        _pathLabelRight.Text = !_isLeftPanelActive 
+            ? $"[*] Path: {_currentPathRight}" 
+            : $"[ ] Path: {_currentPathRight}";
+    }
+    
+    private void OnListViewKeyDown(object sender, Key e)
+    {
+        if (e == Key.Tab)
+        {
+            SetActivePanel();
         }
     }
     
