@@ -51,13 +51,26 @@ public class TodoView
         
         UpdateListView();
         
+        _listView.KeyDown += (s, e) =>
+        {
+            if (e.KeyCode == Key.Delete)
+            {
+                if (!(_listView.SelectedItem >= 0)) return;
+                var item = _todoItems[(int)_listView.SelectedItem!];
+                _todoItems.Remove(item);
+                UpdateListView();
+                SetTitle();
+                e.Handled = true;
+            }
+        };
+
         _listView.Accepting += (s, e) =>
         {
             if (!(_listView.SelectedItem >= 0)) return;
-            
+
             var item = _todoItems[(int)_listView.SelectedItem!];
             item.Marked = !item.Marked;
-            
+
             _listView.SetNeedsDraw();
             e.Handled = true;
 
