@@ -27,6 +27,16 @@ public class TodoView
             ShowMarks = false
         };
         
+        _listView.Accepting += (s, e) => {
+            if (_listView.SelectedItem >= 0)
+            {
+                var item = _todoItems[(int)_listView.SelectedItem!];
+                item.Marked = !item.Marked;
+                _listView.SetNeedsDraw();
+                e.Handled = true;
+            }
+        };
+        
         // testing data
         for (byte i = 0; i < 10; i++)
         {

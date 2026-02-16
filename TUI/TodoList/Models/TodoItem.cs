@@ -7,6 +7,6 @@ public class TodoItem
     
     public override string ToString()
     {
-        return Marked ? $"[X]  {Text} " : $"[ ] {Text}";
+        return Marked ? $"[X] {Text}" : $"[ ] {Text}";
     }
 }
