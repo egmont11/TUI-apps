@@ -4,12 +4,8 @@ using TodoList.Models;
 
 namespace TodoList.Services;
 
-public class LoadDataService
+public static class LoadDataService
 {
-    public LoadDataService()
-    {
-    }
-
     public static ObservableCollection<TodoItem> GetItems()
     {
         if (!File.Exists("./data.json"))

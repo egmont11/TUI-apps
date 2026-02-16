@@ -11,26 +11,34 @@ namespace TodoList.Views;
 
 public class TodoView
 {
-    private Window _window;
-    private LoadDataService _loadDataService;
+    private readonly Window _window;
     private ObservableCollection<TodoItem> _todoItems;
-    private ListView _listView;
-    private TextField _newItemTextField;
-    private Label _newItemLabel;
+    private readonly ListView _listViewUnfinished;
+    private readonly ListView _listViewFinished;
+    private readonly TextField _newItemTextField;
+    private readonly Label _newItemLabel;
     
     public TodoView(Window window)
     {
         _window = window;
-        _loadDataService = new LoadDataService();
         _todoItems = [];
-        _listView = new ListView
+        _listViewUnfinished = new ListView
         {
             X = 0,
             Y = 2,
-            Width = Dim.Fill(),
-            Height = Dim.Fill() - 2,
+            Width = Dim.Percent(50) - 1,
+            Height = Dim.Fill(1),
             ShowMarks = false
         };
+        _listViewFinished = new ListView
+        {
+            X = Pos.Percent(50),
+            Y = 2,
+            Width = Dim.Fill(),
+            Height = Dim.Fill(1),
+            ShowMarks = false
+        };
+        
         _newItemLabel = new Label
         {
             X = 0,
@@ -50,33 +58,52 @@ public class TodoView
         _todoItems = LoadDataService.GetItems();
         
         UpdateListView();
-        
-        _listView.KeyDown += (s, e) =>
+
+        void HandleKeyDown(ListView listView, Key e)
         {
-            if (e.KeyCode == Key.Delete)
+            if (e == Key.Delete)
             {
-                if (!(_listView.SelectedItem >= 0)) return;
-                var item = _todoItems[(int)_listView.SelectedItem!];
+                if (listView.Source is null || !(listView.SelectedItem >= 0)) return;
+                var items = (IList<TodoItem>)listView.Source.ToList();
+                var item = items[listView.SelectedItem ?? 0];
                 _todoItems.Remove(item);
                 UpdateListView();
                 SetTitle();
                 e.Handled = true;
             }
-        };
+            if (e == Key.Tab)
+            {
+                if (listView == _listViewUnfinished)
+                {
+                    _listViewFinished.SetFocus();
+                }
+                else
+                {
+                    _listViewUnfinished.SetFocus();
+                }
+                e.Handled = true;
+            }
+        }
 
-        _listView.Accepting += (s, e) =>
+        void HandleAccepting(ListView listView, CommandEventArgs e)
         {
-            if (!(_listView.SelectedItem >= 0)) return;
-
-            var item = _todoItems[(int)_listView.SelectedItem!];
+            if (listView.Source is null || !(listView.SelectedItem >= 0)) return;
+            var items = (IList<TodoItem>)listView.Source.ToList();
+            var item = items[listView.SelectedItem ?? 0];
             item.Marked = !item.Marked;
 
-            _listView.SetNeedsDraw();
+            UpdateListView();
             e.Handled = true;
 
             SetTitle();
-            _listView.HasFocus = true;
-        };
+            listView.HasFocus = true;
+        }
+
+        _listViewUnfinished.KeyDown += (s, e) => HandleKeyDown(_listViewUnfinished, e);
+        _listViewFinished.KeyDown += (s, e) => HandleKeyDown(_listViewFinished, e);
+
+        _listViewUnfinished.Accepting += (s, e) => HandleAccepting(_listViewUnfinished, e);
+        _listViewFinished.Accepting += (s, e) => HandleAccepting(_listViewFinished, e);
         
         var saveButton = new Button
         {
@@ -85,20 +112,27 @@ public class TodoView
             Y = Pos.AnchorEnd(1)
         };
         saveButton.Accepting += (s, e) => SaveList();
-        _window.Add(saveButton);
         
         _window.KeyDown += (s, e) =>
         {
-            if (e.KeyCode == Key.S.WithCtrl)
-            {
-                SaveList();
-                e.Handled = true;
-            }
+            if (e.KeyCode != Key.S.WithCtrl) return;
+            
+            SaveList();
+            e.Handled = true;
         };
-        
-        _window.Add(_listView);
+
+        _window.Add(_listViewUnfinished);
+        _window.Add(_listViewFinished);
         _window.Add(_newItemLabel);
         _window.Add(_newItemTextField);
+        _window.Add(saveButton);
+        _window.Add(new Line()
+        {
+            X = Pos.Percent(50)-1,
+            Y = 2,
+            Height = Dim.Fill(1),
+            Orientation = Orientation.Vertical
+        });
         
         _newItemTextField.Accepting += (s, e) =>
         {
@@ -116,7 +150,11 @@ public class TodoView
 
     private void UpdateListView()
     {
-        _listView.SetSource(_todoItems);
+        var finishedItems = new ObservableCollection<TodoItem>(_todoItems.Where(i => i.Marked));
+        var unfinishedItems = new ObservableCollection<TodoItem>(_todoItems.Where(i => !i.Marked));
+        
+        _listViewUnfinished.SetSource<TodoItem>(unfinishedItems);
+        _listViewFinished.SetSource<TodoItem>(finishedItems);
     }
 
     private void SaveList()
