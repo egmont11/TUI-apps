@@ -8,6 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="ComputerInfo" Version="0.2.0" />
+      <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="10.0.3" />
       <PackageReference Include="Terminal.Gui" Version="2.0.0-develop.5027" />
     </ItemGroup>
 
